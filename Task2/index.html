@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Professional To‑Do List — Pending & Completed</title>
+  <style>
+    :root{
+      --bg:#0f1724; 
+      --card:#0b1220;
+      --muted:#94a3b8;
+      --accent:#06b6d4;
+      --accent-2:#7c3aed;
+      --danger:#ef4444;
+      --glass: rgba(255,255,255,0.03);
+      --radius:14px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022 0%, #071528 60%);color:#e6eef6}
+    .app{
+      max-width:1100px;
+      margin:40px auto;
+      padding:28px;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow:0 8px 30px rgba(2,6,23,0.6);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    header{
+      display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;
+    }
+    header h1{font-size:20px;margin:0}
+    header p{margin:0;color:var(--muted);font-size:13px}
+    .controls{display:flex;gap:12px;align-items:center}
+    .search{background:var(--glass);border:1px solid rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;display:flex;align-items:center;gap:8px}
+    .search input{background:transparent;border:0;outline:none;color:inherit;width:220px}
+    .add-btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:10px 14px;border-radius:10px;border:0;color:#042026;cursor:pointer;font-weight:600}
+    .main{
+      display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px
+    }
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
+      border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.02);
+      min-height:320px;display:flex;flex-direction:column;
+    }
+    .panel h2{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px 0}
+    .count{color:var(--muted);font-size:13px}
+    .task-list{flex:1;overflow:auto;padding-right:6px}
+    .task{
+      display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.012)
+    }
+    .task .left{display:flex;gap:12px;align-items:center;min-width:0}
+    .checkbox{width:18px;height:18px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .checkbox.checked{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:0}
+    .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta{color:var(--muted);font-size:12px}
+    .actions{display:flex;gap:8px}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:6px 8px;border-radius:8px;color:var(--muted);cursor:pointer;font-size:13px}
+    .btn.ghost{background:transparent}
+    .btn.danger{border-color:rgba(239,68,68,0.18);color:var(--danger)}
+    footer.panel-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:12px}
+    .empty{color:var(--muted);text-align:center;padding:24px 8px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:none;align-items:center;justify-content:center}
+    .modal{background:linear-gradient(180deg,#071022,#071428);padding:18px;border-radius:12px;width:100%;max-width:520px;border:1px solid rgba(255,255,255,0.04)}
+    .modal input, .modal textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    .modal .row{display:flex;gap:10px}
+    @media (max-width:880px){
+      .main{grid-template-columns:1fr}
+      .search input{width:120px}
+    }
+  </style>
+</head>
+  
+<body>
+  <div class="app" role="application">
+    <header>
+      <div>
+        <h1>Professional To‑Do</h1>
+        <p>Organize tasks — keep track of pending and completed work</p>
+      </div>
+      <div class="controls">
+        <div class="search" title="Search tasks">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input id="search" placeholder="Search tasks..." aria-label="Search tasks">
+        </div>
+        <button class="add-btn" id="openAdd">+ Add Task</button>
+      </div>
+    </header>
+    <section class="main">
+      <div class="panel" aria-labelledby="pending-title">
+        <h2 id="pending-title">Pending <span class="count" id="pendingCount">(0)</span></h2>
+        <div class="task-list" id="pendingList" aria-live="polite"></div>
+        <footer class="panel-actions">
+          <div class="meta">Tip: Mark complete to move tasks to Completed.</div>
+          <div>
+            <button class="btn" id="clearPending">Clear All</button>
+          </div>
+        </footer>
+      </div>
+      <div class="panel" aria-labelledby="completed-title">
+        <h2 id="completed-title">Completed <span class="count" id="completedCount">(0)</span></h2>
+        <div class="task-list" id="completedList" aria-live="polite"></div>
+        <footer class="panel-actions">
+          <div class="meta">Completed tasks are stored for reference.</div>
+          <div>
+            <button class="btn" id="clearCompleted">Clear Completed</button>
+          </div>
+        </footer>
+      </div>
+    </section>
+    <div class="modal-backdrop" id="modal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h3 id="modalTitle">Add Task</h3>
+        <div style="height:8px"></div>
+        <input id="taskTitle" placeholder="Task title (required)">
+        <div style="height:8px"></div>
+        <textarea id="taskNote" rows="4" placeholder="Details (optional)"></textarea>
+        <div style="height:12px"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" id="cancel">Cancel</button>
+          <button class="add-btn" id="saveTask">Save Task</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const LS_KEY = 'pro_todo_v1';
+    const pendingList = document.getElementById('pendingList');
+    const completedList = document.getElementById('completedList');
+    const pendingCount = document.getElementById('pendingCount');
+    const completedCount = document.getElementById('completedCount');
+    const modal = document.getElementById('modal');
+    const openAdd = document.getElementById('openAdd');
+    const cancel = document.getElementById('cancel');
+    const saveTask = document.getElementById('saveTask');
+    const taskTitle = document.getElementById('taskTitle');
+    const taskNote = document.getElementById('taskNote');
+    const clearCompleted = document.getElementById('clearCompleted');
+    const clearPending = document.getElementById('clearPending');
+    const search = document.getElementById('search');
+    let state = { pending: [], completed: [] };
+    let editId = null; 
+    function uid(){ return 't_'+Math.random().toString(36).slice(2,9); }
+    function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+    function loadState(){ try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(s) state = s; }catch(e){} }
+    function formatDate(ts){ const d=new Date(ts); return d.toLocaleString(); }
+    function render(){
+      const q = (search.value||'').toLowerCase().trim();
+      pendingList.innerHTML=''; completedList.innerHTML='';
+      const filteredPending = state.pending.filter(t=> t.title.toLowerCase().includes(q) || (t.note||'').toLowerCase().includes(q));
+      const filteredCompleted = state.completed.filter(t=> t.title.toLowerCase().includes(q) || (t.note||'').toLowerCase().includes(q));
+      if(filteredPending.length===0) pendingList.innerHTML = '<div class="empty">No pending tasks — add a task to get started.</div>';
+      if(filteredCompleted.length===0) completedList.innerHTML = '<div class="empty">No completed tasks yet.</div>';
+      filteredPending.forEach(t=>{
+        const el = taskElement(t,false);
+        pendingList.appendChild(el);
+      });
+      filteredCompleted.forEach(t=>{
+        const el = taskElement(t,true);
+        completedList.appendChild(el);
+      });
+      pendingCount.textContent = `(${state.pending.length})`;
+      completedCount.textContent = `(${state.completed.length})`;
+    }
+    function taskElement(task,isCompleted){
+      const row = document.createElement('div'); row.className='task';
+      const left = document.createElement('div'); left.className='left';
+      const chk = document.createElement('div'); chk.className='checkbox'+(isCompleted? ' checked':'');
+      chk.title = isCompleted ? 'Mark as pending' : 'Mark as completed';
+      chk.tabIndex = 0;
+      chk.addEventListener('click', ()=> toggleComplete(task.id));
+      chk.addEventListener('keydown', (e)=>{ if(e.key==='Enter') toggleComplete(task.id); });
+      const info = document.createElement('div'); info.style.minWidth='0';
+      const title = document.createElement('div'); title.className='title'; title.textContent = task.title;
+      const meta = document.createElement('div'); meta.className='meta'; meta.textContent = task.note ? (task.note.length>70? task.note.slice(0,70)+'...':task.note) : `Created: ${formatDate(task.created)}`;
+      info.appendChild(title); info.appendChild(meta);
+      left.appendChild(chk); left.appendChild(info);
+      const actions = document.createElement('div'); actions.className='actions';
+      const editBtn = document.createElement('button'); editBtn.className='btn'; editBtn.textContent='Edit'; editBtn.addEventListener('click', ()=> openEdit(task.id));
+      const delBtn = document.createElement('button'); delBtn.className='btn danger'; delBtn.textContent='Delete'; delBtn.addEventListener('click', ()=> deleteTask(task.id, isCompleted));
+      if(isCompleted){
+        const undo = document.createElement('button'); undo.className='btn'; undo.textContent='Undo'; undo.addEventListener('click', ()=> toggleComplete(task.id));
+        actions.appendChild(undo);
+      }
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
+      row.appendChild(left); row.appendChild(actions);
+      return row;
+    }
+    function addTask(title,note){
+      const task = { id: uid(), title, note, created: Date.now() };
+      state.pending.unshift(task); saveState(); render();
+    }
+    function openEdit(id){
+      const task = state.pending.find(t=>t.id===id) || state.completed.find(t=>t.id===id);
+      if(!task) return;
+      editId = id;
+      taskTitle.value = task.title; taskNote.value = task.note || '';
+      modal.style.display='flex'; document.getElementById('modal').style.display='flex';
+    }
+    function toggleComplete(id){
+      let i = state.pending.findIndex(t=>t.id===id);
+      if(i>-1){ const [t]=state.pending.splice(i,1); state.completed.unshift(t); saveState(); render(); return; }
+      i = state.completed.findIndex(t=>t.id===id);
+      if(i>-1){ const [t]=state.completed.splice(i,1); state.pending.unshift(t); saveState(); render(); }
+    }
+    function deleteTask(id,isCompleted){
+      if(isCompleted){ state.completed = state.completed.filter(t=>t.id!==id); }
+      else{ state.pending = state.pending.filter(t=>t.id!==id); }
+      saveState(); render();
+    }
+    clearCompleted.addEventListener('click', ()=>{
+      if(!confirm('Clear all completed tasks?')) return; state.completed=[]; saveState(); render();
+    });
+    clearPending.addEventListener('click', ()=>{
+      if(!confirm('Clear all pending tasks?')) return; state.pending=[]; saveState(); render();
+    });
+    openAdd.addEventListener('click', ()=>{ editId=null; taskTitle.value=''; taskNote.value=''; modal.style.display='flex'; document.getElementById('modal').style.display='flex'; taskTitle.focus(); });
+    cancel.addEventListener('click', ()=>{ modal.style.display='none'; document.getElementById('modal').style.display='none'; });
+    saveTask.addEventListener('click', ()=>{
+      const title = taskTitle.value.trim(); const note = taskNote.value.trim();
+      if(!title) return alert('Please add a task title.');
+      if(editId){ 
+        ['pending','completed'].forEach(listName=>{
+          const arr = state[listName]; const idx = arr.findIndex(t=>t.id===editId);
+          if(idx>-1){ arr[idx].title=title; arr[idx].note=note; }
+        });
+        editId=null;
+      } else {
+        addTask(title,note);
+      }
+      modal.style.display='none'; document.getElementById('modal').style.display='none'; saveState(); render();
+    });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ modal.style.display='none'; document.getElementById('modal').style.display='none'; } });
+    search.addEventListener('input', ()=> render());
+    loadState(); render();
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) { modal.style.display='none'; document.getElementById('modal').style.display='none'; } });
+  </script>
+</body>
+</html>
