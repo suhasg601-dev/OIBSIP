@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Register-Login</title>
+<style>
+  :root{
+    --bg:#fff9ff;
+    --card:#ffffff;
+    --muted:#864fa2;
+    --pink:#ff9fc1;
+    --blue:#8ec7ff;
+    --peach:#ffd8a8;
+    --radius:18px;
+    --glass: rgba(255,255,255,0.75);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    background: linear-gradient(180deg, #fff 0%, var(--bg) 100%);
+    display:flex;align-items:center;justify-content:center;padding:28px;color:#231728;
+  }
+.stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,250,255,0.95));
+    padding:30px;border-radius:var(--radius);box-shadow:0 18px 60px rgba(64,32,80,0.06);position:relative;
+    overflow:hidden;
+  }
+  .brand{
+    display:flex;gap:12px;align-items:center;margin-bottom:12px;
+  }
+  h1{margin:0;font-size:28px}
+  p.lead{color:var(--muted);margin-top:8px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .badge{background:var(--glass);padding:8px 12px;border-radius:999px;font-weight:700;color:var(--muted);font-size:0.9rem;box-shadow:0 8px 28px rgba(90,60,120,0.03)}
+  .decor{
+    position:absolute; right:-40px; top:-40px; transform:rotate(12deg); opacity:.9;
+    display:flex;gap:12px;
+  }
+  .card{
+    background:linear-gradient(180deg, #fff, #fff);border-radius:var(--radius);padding:20px;box-shadow:0 18px 60px rgba(64,32,80,0.06);
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .tabs{display:flex;gap:8px}
+  .tab{padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:800;color:var(--muted)}
+  .tab.active{background:linear-gradient(90deg,var(--pink),var(--blue));color:white;box-shadow:0 12px 36px rgba(140,90,140,0.12)}
+  form{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .field{position:relative}
+  input[type="text"],input[type="password"],input[type="email"]{
+    width:100%;padding:12px 14px 12px 46px;border-radius:12px;border:1px solid rgba(30,20,30,0.06);font-size:1rem;background:#fff;
+  }
+  input:focus{outline:none;box-shadow:0 12px 36px rgba(140,90,140,0.06);transform:translateY(-2px)}
+  .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.9;font-size:14px}
+  .row{display:flex;gap:8px}
+  .btn{padding:11px 14px;border-radius:12px;border:0;font-weight:900;cursor:pointer;background:linear-gradient(90deg,var(--pink),var(--blue));color:white;box-shadow:0 14px 44px rgba(140,90,140,0.12)}
+  .btn.ghost{background:transparent;border:1px dashed rgba(120,90,140,0.12);color:var(--muted);font-weight:800}
+  .small{font-size:.88rem;color:var(--muted)}
+  .helper{display:flex;justify-content:space-between;align-items:center}
+  .msg{padding:10px;border-radius:12px;font-weight:800}
+  .msg.ok{background:linear-gradient(90deg,#f2fff6,#e9fff2);color:#0a6a3a}
+  .msg.err{background:linear-gradient(90deg,#fff0f0,#fff6f6);color:#a12a2a}
+  .dashboard{
+    display:none;flex-direction:column;gap:12px;padding:12px;border-radius:12px;border:1px dashed rgba(120,90,140,0.06);
+    background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.98));
+  }
+  footer{margin-top:6px;color:var(--muted);font-size:.88rem;text-align:center}
+  @media (max-width:900px){
+    .stage{grid-template-columns:1fr;gap:16px;padding:8px}
+    .panel{order:2}
+    .card{order:1}
+  }
+</style>
+</head>
+  
+<body>
+  <main class="stage" aria-labelledby="welcome">
+    <section class="panel" aria-label="promo">
+      <div class="decor" aria-hidden="true">
+      </div>
+    <section class="card" aria-label="authentication">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:900;font-size:1.05rem">Welcome ✨</div>
+          <div class="small">Register, sign in, and access the protected dashboard</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn ghost" id="demoFill" title="Create demo user">Try demo</button>
+        </div>
+      </div>
+      <div class="tabs" role="tablist" aria-label="auth tabs">
+        <div class="tab active" id="tab-login" role="tab" aria-selected="true" data-mode="login">Login</div>
+        <div class="tab" id="tab-register" role="tab" aria-selected="false" data-mode="register">Register</div>
+      </div>
+      <div id="message"></div>
+      <form id="loginForm" autocomplete="on" aria-hidden="false">
+        <div class="field">
+          <div class="icon">👤</div>
+          <input id="loginUser" type="text" placeholder="Username" required />
+        </div>
+        <div class="field">
+          <div class="icon">🔒</div>
+          <input id="loginPass" type="password" placeholder="Password" required />
+        </div>
+        <div class="helper">
+          <label style="display:flex;align-items:center;gap:8px">
+            <input id="remember" type="checkbox" aria-label="Remember me"> <span class="small">Remember</span>
+          </label>
+          <button type="button" class="small" id="showReset">Reset (demo)</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button type="button" class="btn" id="btnLogin">Sign in</button>
+          <button type="button" class="btn ghost" id="toRegister">Create</button>
+        </div>
+      </form>
+      <form id="registerForm" style="display:none" aria-hidden="true">
+        <div class="field">
+          <div class="icon">✍️</div>
+          <input id="regUser" type="text" placeholder="Choose a username" required />
+        </div>
+        <div class="field">
+          <div class="icon">🔑</div>
+          <input id="regPass" type="password" placeholder="Create a password (min 6)" required />
+        </div>
+        <div class="field">
+          <div class="icon">🔁</div>
+          <input id="regPass2" type="password" placeholder="Confirm password" required />
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button type="button" class="btn" id="btnRegister">Create account</button>
+          <button type="button" class="btn ghost" id="toLogin">Back</button>
+        </div>
+      </form>
+      <form id="resetForm" style="display:none" aria-hidden="true">
+        <div class="field">
+          <div class="icon">❗</div>
+          <input id="resetUser" type="text" placeholder="Username to remove (demo)" />
+        </div>
+        <div style="margin-top:8px" class="row">
+          <button type="button" class="btn" id="btnReset">Reset (remove)</button>
+          <button type="button" class="btn ghost" id="cancelReset">Cancel</button>
+        </div>
+        <div class="small" style="margin-top:8px;color:var(--muted)">Note: This demo cannot send emails — reset simply deletes the stored account.</div>
+      </form>
+      <div id="dashboard" class="dashboard" role="region" aria-label="protected dashboard">
+        <div style="font-weight:900;font-size:1.05rem">Hello, <span id="dashUser"></span> ✨</div>
+        <p class="small">This is a protected area and only visible after signing in (client-side demo).</p>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="btnContinue" class="btn">Continue</button>
+          <button id="btnLogout" class="btn ghost">Logout</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+function buf2hex(buffer){
+  return Array.prototype.map.call(new Uint8Array(buffer), x => x.toString(16).padStart(2,'0')).join('');
+}
+async function sha256Hex(str){
+  const enc = new TextEncoder();
+  const data = enc.encode(str);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return buf2hex(digest);
+}
+function userKey(uname){ return 'user:'+uname.toLowerCase(); }
+function saveUser(uname, passHash){
+  localStorage.setItem(userKey(uname), JSON.stringify({username:uname,passHash}));
+}
+function getUser(uname){
+  const raw = localStorage.getItem(userKey(uname));
+  if(!raw) return null;
+  try{ return JSON.parse(raw); } catch(e){ return null; }
+}
+function removeUser(uname){ localStorage.removeItem(userKey(uname)); }
+const el = id => document.getElementById(id);
+const show = (el)=> el.style.display = '';
+const hide = (el)=> el.style.display = 'none';
+const setMsg = (text, type='ok')=> {
+  const m = el('message');
+  m.innerHTML = text ? `<div class="msg ${type === 'ok' ? 'ok' : 'err'}">${text}</div>` : '';
+};
+const tabLogin = el('tab-login'), tabRegister = el('tab-register');
+const loginForm = el('loginForm'), registerForm = el('registerForm'), resetForm = el('resetForm');
+tabLogin.addEventListener('click', ()=> setMode('login'));
+tabRegister.addEventListener('click', ()=> setMode('register'));
+el('toRegister').addEventListener('click', ()=> setMode('register'));
+el('toLogin').addEventListener('click', ()=> setMode('login'));
+el('showReset').addEventListener('click', ()=> setMode('reset'));
+el('cancelReset').addEventListener('click', ()=> setMode('login'));
+function setMode(mode){
+  tabLogin.classList.toggle('active', mode==='login');
+  tabRegister.classList.toggle('active', mode==='register');
+  if(mode==='login'){ show(loginForm); hide(registerForm); hide(resetForm); hide(el('dashboard')); }
+  if(mode==='register'){ show(registerForm); hide(loginForm); hide(resetForm); hide(el('dashboard')); }
+  if(mode==='reset'){ show(resetForm); hide(loginForm); hide(registerForm); hide(el('dashboard')); }
+  setMsg('');
+}
+el('btnRegister').addEventListener('click', async ()=>{
+  const u = el('regUser').value.trim();
+  const p = el('regPass').value;
+  const p2 = el('regPass2').value;
+  if(!u || !p){ setMsg('Enter username and password','err'); return; }
+  if(p.length < 6){ setMsg('Use at least 6 characters','err'); return; }
+  if(p !== p2){ setMsg('Passwords do not match','err'); return; }
+  if(getUser(u)){ setMsg('Username taken — pick another','err'); return; }
+  const h = await sha256Hex(u.toLowerCase() + '|' + p);
+  saveUser(u, h);
+  setMsg('Account created! You can now sign in','ok');
+  el('loginUser').value = u; el('loginPass').value = '';
+  setTimeout(()=> setMode('login'), 900);
+});
+el('btnLogin').addEventListener('click', async ()=>{
+  const u = el('loginUser').value.trim();
+  const p = el('loginPass').value;
+  if(!u || !p){ setMsg('Enter username and password','err'); return; }
+  const stored = getUser(u);
+  if(!stored){ setMsg('No account found','err'); return; }
+  const h = await sha256Hex(u.toLowerCase() + '|' + p);
+  if(h === stored.passHash){
+    setMsg('Welcome back ✨','ok');
+    if(el('remember').checked) localStorage.setItem('loggedInUser', u.toLowerCase());
+    else sessionStorage.setItem('loggedInUser', u.toLowerCase());
+    showDashboard(u);
+  } else {
+    setMsg('Incorrect password','err');
+  }
+});
+el('btnReset').addEventListener('click', ()=>{
+  const u = el('resetUser').value.trim();
+  if(!u){ setMsg('Type username to remove','err'); return; }
+  if(!getUser(u)){ setMsg('No such user','err'); return; }
+  removeUser(u);
+  setMsg('Account removed (demo). You may re-register','ok');
+  setTimeout(()=> setMode('register'), 900);
+});
+el('demoFill').addEventListener('click', async ()=>{
+  const u = 'sunny', p = 'flower123';
+  if(!getUser(u)){
+    const h = await sha256Hex(u.toLowerCase() + '|' + p);
+    saveUser(u, h);
+  }
+  el('loginUser').value = u; el('loginPass').value = p;
+  setMsg('Demo credentials: sunny / flower123','ok');
+});
+function showDashboard(username){
+  el('dashUser').textContent = username;
+  hide(loginForm); hide(registerForm); hide(resetForm);
+  show(el('dashboard'));
+  setTimeout(()=> el('btnContinue').focus(), 150);
+}
+el('btnLogout').addEventListener('click', ()=>{
+  localStorage.removeItem('loggedInUser'); sessionStorage.removeItem('loggedInUser');
+  setMsg('Logged out 👋','ok');
+  setTimeout(()=> setMode('login'), 600);
+});
+el('btnContinue').addEventListener('click', ()=> {
+  setMsg('Enjoy the demo session ✨','ok');
+});
+window.addEventListener('load', ()=>{
+  const remembered = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+  if(remembered){
+    setMsg('Welcome back, ' + remembered + ' ✨','ok');
+    setTimeout(()=> showDashboard(remembered), 700);
+  }
+  setMode('login');
+});
+</script>
+</body>
+</html>
